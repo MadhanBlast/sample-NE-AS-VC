@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router"; // Import Next.js router
+
 export default function HomePage() {
   const [isVerified, setIsVerified] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false); // Renamed from `loading`
   const [errorMessage, setErrorMessage] = useState("");
 
   const tokenExpiryTime = 10 * 60 * 1000; // 10 minutes in milliseconds
+  const router = useRouter(); // Next.js router
+
+  // Full-screen function
+  const goFullScreen = () => {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+    } else if (document.documentElement.mozRequestFullScreen) { // Firefox
+      document.documentElement.mozRequestFullScreen();
+    } else if (document.documentElement.webkitRequestFullscreen) { // Chrome, Safari
+      document.documentElement.webkitRequestFullscreen();
+    } else if (document.documentElement.msRequestFullscreen) { // IE/Edge
+      document.documentElement.msRequestFullscreen();
+    }
+  };
 
   // Function to handle verification
   const handleVerification = async () => {
@@ -32,8 +48,14 @@ export default function HomePage() {
         localStorage.setItem("gplinks_token", "valid");
         localStorage.setItem("gplinks_token_timestamp", Date.now().toString());
 
-        // Redirect the user to the shortened URL
-        window.location.href = result.shortenedUrl;
+        // Call fullscreen function before redirect (if applicable)
+        goFullScreen();
+
+        // Use Next.js router for internal navigation (SPA style)
+        router.push(result.shortenedUrl); // Redirects without showing the browser address bar
+
+        // Alternatively, if SPA isn't viable, you can use:
+        // window.open(result.shortenedUrl, "_blank"); // Opens in a new tab
       } else {
         throw new Error(result.message || "Failed to generate the verification link.");
       }
